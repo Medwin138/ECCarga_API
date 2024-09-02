@@ -1,0 +1,32 @@
+name: OWASP ZAP Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 13 * * *'  # Ejecuta todos los días a la 1 PM UTC, que corresponde a las 8 AM en Colombia
+  workflow_dispatch:  # Permite ejecutar el workflow manualmente desde GitHub Actions
+
+jobs:
+  zap-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install ZAP CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zaproxy
+
+      - name: Run ZAP Baseline Scan
+        run: |
+          zap-baseline.py -t https://petstore.swagger.io/v2/pet/findByStatus?status=available -r zap_report.html
+          
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: zap-report
+          path: zap_report.html
