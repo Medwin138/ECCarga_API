@@ -30,13 +30,13 @@ jobs:
             -e Prueba.postman_environment.json \
             -d DataPruebaDog.csv \
             -r cli,htmlextra \
-            --reporter-htmlextra-export newman/report.html
+            --reporter-htmlextra-export report.html
 
       - name: Ensure report file exists and create if not
         run: |
-          if [ ! -f newman/report.html ]; then
+          if [ ! -f report.html ]; then
             echo "Report file does not exist. Creating a new one."
-            touch newman/report.html
+            touch report.html
           else
             echo "Report file exists. Updating the existing file."
           fi
@@ -46,9 +46,9 @@ jobs:
 
       - name: Check if report file exists and print content
         run: |
-          if [ -f newman/report.html ]; then
+          if [ -f report.html ]; then
             echo "Report file exists."
-            cat newman/report.html | head -n 10  # Muestra las primeras líneas del archivo para verificar
+            cat report.html | head -n 10  # Muestra las primeras líneas del archivo para verificar
           else
             echo "Report file does not exist."
           fi
@@ -57,4 +57,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: postman-report
-          path: newman/report.html
+          path: report.html
