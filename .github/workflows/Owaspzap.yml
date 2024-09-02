@@ -1,4 +1,4 @@
-name: OWASP ZAP Security Scan
+name: OWASP ZAP Full Scan
 
 on:
   push:
@@ -9,16 +9,19 @@ on:
   workflow_dispatch:  # Permite ejecutar el workflow manualmente desde GitHub Actions
 
 jobs:
-  zap-scan:
+  zap-full-scan:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Run ZAP Baseline Scan
+      - name: Run ZAP Full Scan
         run: |
-          docker run -v $(pwd):/zap/wrk/ -t owasp/zap2docker-stable zap-baseline.py -t https://petstore.swagger.io/v2/pet/findByStatus?status=available -r zap_report.html
+          docker run --rm --memory=8gb -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly \
+          zap-full-scan.py -I -j -m 10 -T 60 \
+          -t https://petstore.swagger.io/v2/pet/findByStatus?status=available \
+          -r zap_report.html
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v2
