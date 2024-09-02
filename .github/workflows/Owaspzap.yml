@@ -16,15 +16,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install ZAP CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y zaproxy
-
       - name: Run ZAP Baseline Scan
         run: |
-          zap-baseline.py -t https://petstore.swagger.io/v2/pet/findByStatus?status=available -r zap_report.html
-          
+          docker run -v $(pwd):/zap/wrk/ -t owasp/zap2docker-stable zap-baseline.py -t https://petstore.swagger.io/v2/pet/findByStatus?status=available -r zap_report.html
+
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v2
         with:
