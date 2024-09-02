@@ -33,19 +33,7 @@ jobs:
             -e Prueba.postman_environment.json \
             -d DataPruebaDog.csv \
             -r cli,htmlextra \
-            --reporter-htmlextra-export newman/report.html
-
-      - name: List files in newman directory
-        run: ls -l newman
-
-      - name: Check if report file exists and print content
-        run: |
-          if [ -f newman/report.html ]; then
-            echo "Report file exists."
-            cat newman/report.html | head -n 10  # Muestra las primeras líneas del archivo para verificar
-          else
-            echo "Report file does not exist."
-          fi
+            --reporter-htmlextra-export report.html
 
       - name: Upload report
         uses: actions/upload-artifact@v2
