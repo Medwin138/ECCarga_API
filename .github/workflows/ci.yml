@@ -29,9 +29,9 @@ jobs:
 
       - name: Run Postman Collection
         run: |
-          newman run newman/EC-Carga.postman_collection.json \
-            -e newman/Prueba.postman_environment.json \
-            -d newman/DataPruebaDog.csv \
+          newman run EC-Carga.postman_collection.json \
+            -e Prueba.postman_environment.json \
+            -d DataPruebaDog.csv \
             -r cli,htmlextra \
             --reporter-htmlextra-export newman/report.html
 
