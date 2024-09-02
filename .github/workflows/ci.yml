@@ -32,10 +32,19 @@ jobs:
             -r cli,htmlextra \
             --reporter-htmlextra-export newman/report.html
 
+      - name: Ensure report file exists and create if not
+        run: |
+          if [ ! -f newman/report.html ]; then
+            echo "Report file does not exist. Creating a new one."
+            touch newman/report.html
+          else
+            echo "Report file exists. Updating the existing file."
+          fi
+
       - name: List files in newman directory
         run: ls -l newman
 
-      - name: Check if report file exists
+      - name: Check if report file exists and print content
         run: |
           if [ -f newman/report.html ]; then
             echo "Report file exists."
