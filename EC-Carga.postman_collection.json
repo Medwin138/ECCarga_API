@@ -1,0 +1,301 @@
+{
+	"info": {
+		"_postman_id": "16d0f509-f12c-4277-b431-586c1d36320f",
+		"name": "EC-Carga",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Crear",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Lista ampliada de nombres de perros\r",
+							"const dogNames = [\r",
+							"    \"Max\", \"Bella\", \"Rocky\", \"Luna\", \"Toby\", \"Daisy\", \"Charlie\", \"Maggie\",\r",
+							"    \"Buddy\", \"Sadie\", \"Duke\", \"Molly\", \"Rex\", \"Chloe\", \"Bruno\", \"Zoey\",\r",
+							"    \"Cooper\", \"Sophie\", \"Diesel\", \"Bailey\", \"Leo\", \"Nala\", \"Simba\", \"Ruby\",\r",
+							"    \"Thor\", \"Ginger\", \"Zeus\", \"Rosie\", \"Apollo\", \"Coco\", \"Riley\", \"Oscar\",\r",
+							"    \"Harley\", \"Buster\", \"Kona\", \"Shadow\", \"Winston\", \"Bentley\", \"Stella\",\r",
+							"    \"Tank\", \"Milo\", \"Scout\", \"Jake\", \"Lola\", \"Blue\", \"Marley\", \"Ace\", \r",
+							"    \"Jasper\", \"Teddy\", \"Roxy\", \"Sammy\", \"Bear\", \"Willow\", \"Hunter\", \r",
+							"    \"Otis\", \"Piper\", \"Gizmo\", \"Moose\", \"Rusty\", \"Benny\", \"Jax\", \"Ranger\"\r",
+							"];\r",
+							"\r",
+							"// Generar un índice aleatorio\r",
+							"const randomIndex = Math.floor(Math.random() * dogNames.length);\r",
+							"\r",
+							"// Seleccionar un nombre aleatorio\r",
+							"const randomDogName = dogNames[randomIndex];\r",
+							"\r",
+							"// Guardar el nombre en una variable de entorno\r",
+							"pm.environment.set(\"randomDogName\", randomDogName);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"CP1: Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP2: validar la palabra id en el json\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"id\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP3: Validar que el campo id no esté vacío o nulo\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.id).to.not.be.null;\r",
+							"    pm.expect(responseJson.id).to.not.be.undefined;\r",
+							"    pm.expect(responseJson.id).to.not.equal(\"\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP4: Validar que la categoría tenga un nombre no vacío\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.category.name).to.not.be.null;\r",
+							"    pm.expect(responseJson.category.name).to.not.be.undefined;\r",
+							"    pm.expect(responseJson.category.name).to.not.equal(\"\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP5: Validar que el estado sea 'available'\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.status).to.equal(\"available\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP6: Validar que el nombre tenga más de 2 caracteres\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.name.length).to.be.above(2);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": {{id}},\n  \"category\": {\n    \"id\": 123,\n    \"name\": \"Doberman\"\n  },\n  \"name\": \"{{randomDogName}}\",\n  \"photoUrls\": [\n    \"string\"\n  ],\n  \"tags\": [\n    {\n      \"id\": 0,\n      \"name\": \"{{Nombre}}\"\n    }\n  ],\n  \"status\": \"available\"\n}"
+				},
+				"url": "https://petstore.swagger.io/v2/pet"
+			},
+			"response": []
+		},
+		{
+			"name": "Consulta Por ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"CP1: Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP2: validar la palabra id en el json\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"id\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP3: Validar que el campo id no esté vacío o nulo\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.id).to.not.be.null;\r",
+							"    pm.expect(responseJson.id).to.not.be.undefined;\r",
+							"    pm.expect(responseJson.id).to.not.equal(\"\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP4: Validar que la categoría tenga un nombre no vacío\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.category.name).to.not.be.null;\r",
+							"    pm.expect(responseJson.category.name).to.not.be.undefined;\r",
+							"    pm.expect(responseJson.category.name).to.not.equal(\"\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP5: Validar que el estado sea 'available'\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.status).to.equal(\"available\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP6: Validar que 'tags' contenga al menos un elemento\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.tags).to.be.an('array').that.is.not.empty;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP7: Validar que el nombre tenga más de 2 caracteres\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.name.length).to.be.above(2);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					}
+				],
+				"url": "https://petstore.swagger.io/v2/pet/{{id}}"
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"CP1: Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP2: validar la palabra id en el json\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"id\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP3: Validar que el campo id no esté vacío o nulo\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.id).to.not.be.null;\r",
+							"    pm.expect(responseJson.id).to.not.be.undefined;\r",
+							"    pm.expect(responseJson.id).to.not.equal(\"\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP4: Validar que la categoría tenga un nombre no vacío\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.category.name).to.not.be.null;\r",
+							"    pm.expect(responseJson.category.name).to.not.be.undefined;\r",
+							"    pm.expect(responseJson.category.name).to.not.equal(\"\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP5: Validar que el estado sea 'available'\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.status).to.equal(\"available\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP6: Validar que 'tags' contenga al menos un elemento\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.tags).to.be.an('array').that.is.not.empty;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP7: Validar que el nombre tenga más de 2 caracteres\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.name.length).to.be.above(2);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"const responseJson = pm.response.json();\r",
+							"pm.environment.set(\"updatedPetName\", responseJson.name);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": {{id}},\n  \"category\": {\n    \"id\": 0,\n    \"name\": \"string\"\n  },\n  \"name\": \"{{Nombre}}\",\n  \"photoUrls\": [\n    \"string\"\n  ],\n  \"tags\": [\n    {\n      \"id\": 0,\n      \"name\": \"{{randomDogName}}\"\n    }\n  ],\n  \"status\": \"available\"\n}"
+				},
+				"url": "https://petstore.swagger.io/v2/pet"
+			},
+			"response": []
+		},
+		{
+			"name": "Consulta Por ID Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"CP1: Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP2: validar la palabra id en el json\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"id\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP3: Validar que el campo id no esté vacío o nulo\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.id).to.not.be.null;\r",
+							"    pm.expect(responseJson.id).to.not.be.undefined;\r",
+							"    pm.expect(responseJson.id).to.not.equal(\"\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP4: Validar que la categoría tenga un nombre no vacío\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.category.name).to.not.be.null;\r",
+							"    pm.expect(responseJson.category.name).to.not.be.undefined;\r",
+							"    pm.expect(responseJson.category.name).to.not.equal(\"\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP5: Validar que el estado sea 'available'\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.status).to.equal(\"available\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP6: Validar que 'tags' contenga al menos un elemento\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.tags).to.be.an('array').that.is.not.empty;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP7: Validar que el nombre tenga más de 2 caracteres\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.name.length).to.be.above(2);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"CP8: Validar que el nombre se haya actualizado correctamente\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"       // Obtener el nombre actualizado desde la variable de entorno\r",
+							"    const updatedName = pm.environment.get(\"updatedPetName\");\r",
+							"       // Validar que el nombre en la respuesta GET coincida con el nombre actualizado\r",
+							"    pm.expect(responseJson.name).to.equal(updatedName);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					}
+				],
+				"url": "https://petstore.swagger.io/v2/pet/{{id}}"
+			},
+			"response": []
+		}
+	]
+}
