@@ -1,8 +1,11 @@
 name: Run Postman Tests
 
 on:
+  push:
+    branches:
+      - main
   schedule:
-    - cron: '0 0 * * *'  # Ejecuta todos los días a medianoche UTC
+    - cron: '0 13 * * *'  # Ejecuta todos los días a la 1 PM UTC, que corresponde a las 8 AM en Colombia
   workflow_dispatch:  # Permite ejecutar el workflow manualmente desde GitHub Actions
 
 jobs:
@@ -22,20 +25,15 @@ jobs:
         run: npm install -g newman
 
       - name: Run Postman Collection
-        run: newman run <path_to_your_collection.json> --reporters cli,html --reporter-html-export report.html
-
-      - name: Send Email Notification
-        env:
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
         run: |
-          curl --request POST \
-          --url https://api.sendgrid.com/v3/mail/send \
-          --header "Authorization: Bearer $SENDGRID_API_KEY" \
-          --header 'Content-Type: application/json' \
-          --data '{"personalizations": [{"to": [{"email": "tu_correo@example.com"}]}],"from": {"email": "notificaciones@tu_dominio.com"},"subject": "Resultado de las Pruebas Automatizadas","content": [{"type": "text/plain", "value": "Las pruebas se han ejecutado. Revisa los resultados en el reporte adjunto."}]}'
+          newman run newman/EC-Carga.postman_collection.json \
+            -e newman/Prueba.postman_environment.json \
+            -d newman/DataPruebaDog.csv \
+            -r cli,htmlextra \
+            --reporter-htmlextra-export newman/report.html
 
       - name: Upload report
         uses: actions/upload-artifact@v2
         with:
           name: postman-report
-          path: report.html
+          path: newman/report.html
