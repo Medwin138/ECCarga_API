@@ -26,29 +26,17 @@ jobs:
 
       - name: Run Postman Collection
         run: |
-          newman run EC-Carga.postman_collection.json \
-            -e Prueba.postman_environment.json \
-            -d DataPruebaDog.csv \
+          newman run newman/EC-Carga.postman_collection.json \
+            -e newman/Prueba.postman_environment.json \
+            -d newman/DataPruebaDog.csv \
             -r cli,htmlextra \
-            --reporter-htmlextra-export report.html
-
-      - name: Ensure report file exists and create if not
-        run: |
-          if [ ! -f report.html ]; then
-            echo "Report file does not exist. Creating a new one."
-            touch report.html
-          else
-            echo "Report file exists. Updating the existing file."
-          fi
-
-      - name: List files in newman directory
-        run: ls -l newman
+            --reporter-htmlextra-export newman/report.html
 
       - name: Check if report file exists and print content
         run: |
-          if [ -f report.html ]; then
+          if [ -f newman/report.html ]; then
             echo "Report file exists."
-            cat report.html | head -n 10  # Muestra las primeras líneas del archivo para verificar
+            cat newman/report.html | head -n 10  # Muestra las primeras líneas del archivo para verificar
           else
             echo "Report file does not exist."
           fi
@@ -57,4 +45,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: postman-report
-          path: report.html
+          path: newman/report.html
