@@ -78,17 +78,18 @@ jobs:
 
       # Crear carpeta dedicada para reportes ZAP
       - name: Crear carpeta reportes ZAP
-        run: mkdir -p ${{ github.workspace }}/zap-reports
+        run: |
+          mkdir -p ${{ github.workspace }}/zap-reports
+          chmod 777 ${{ github.workspace }}/zap-reports
 
-      # Ejecutar ZAP API Scan (reportes en carpeta segura)
-      - name: Ejecutar ZAP API Scan
+      # Ejecutar ZAP Full Scan (reportes en carpeta segura)
+      - name: Ejecutar ZAP Full Scan
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/zap-reports:/zap/wrk:rw \
             -t ictu/zap2docker-weekly \
-            zap-api-scan.py \
+            zap-full-scan.py \
             -t https://petstore.swagger.io/v2/pet/findByStatus?status=available \
-            -f openapi \
             -r /zap/wrk/zap_report.html \
             -j /zap/wrk/zap_report.json \
             -T 30 \
@@ -114,7 +115,6 @@ jobs:
             fi
           else
             echo "⚠️ zap_report.json no existe, saltando verificación HIGH"
-          fi
 
       # Subir reportes ZAP como artefactos
       - name: Subir reporte ZAP
