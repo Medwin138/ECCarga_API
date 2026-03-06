@@ -1,32 +1,47 @@
-name: Run Postman Tests
+name: Run Postman Tests  # Nombre del workflow que aparecerá en la pestaña Actions
 
 on:
   push:
     branches:
-      - main
+      - main   # Ejecuta el workflow cada vez que hay un push a la rama main
+
   schedule:
-    - cron: '0 13 * * *'
-  workflow_dispatch:
+    - cron: '0 13 * * *'  # Ejecuta todos los días a la 1 PM UTC (8 AM Colombia aprox)
+
+  workflow_dispatch:  # Permite ejecutar el workflow manualmente desde GitHub
 
 jobs:
-  run-tests:
-    runs-on: ubuntu-latest
+  run-tests:  # Nombre del job que ejecutará las pruebas
+
+    runs-on: ubuntu-latest  # Usa un runner de Ubuntu proporcionado por GitHub
 
     steps:
+
+      # Descarga el código del repositorio dentro del runner
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Instala Node.js en el runner para poder ejecutar herramientas npm
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '18'  # Define la versión de Node.js que usará el pipeline
 
+      # Instala Newman y el reporter htmlextra globalmente
+      # Newman permite ejecutar colecciones de Postman desde CLI
       - name: Install Newman and reporter
         run: npm install -g newman newman-reporter-htmlextra
 
+      # Crea la carpeta donde se guardará el reporte HTML
+      # El -p evita errores si la carpeta ya existe
       - name: Create newman directory
         run: mkdir -p newman
 
+      # Ejecuta la colección de Postman usando Newman
+      # -e  archivo de environment
+      # -d  archivo de datos CSV para pruebas data-driven
+      # -r  tipo de reportes (cli y html)
+      # --reporter-htmlextra-export define dónde guardar el HTML
       - name: Run Postman Collection
         run: |
           newman run newman/EC-Carga.postman_collection.json \
@@ -34,12 +49,17 @@ jobs:
             -d newman/DataPruebaDog.csv \
             -r cli,htmlextra \
             --reporter-htmlextra-export newman/report.html || true
+      # || true evita que el pipeline se detenga si alguna prueba falla
 
+      # Muestra todos los archivos dentro de la carpeta newman
+      # Sirve para verificar que el reporte fue generado
       - name: List files in directory
         run: ls -R newman
 
+      # Sube los archivos generados como artefacto del workflow
+      # Esto permite descargarlos desde la interfaz de GitHub Actions
       - name: Upload report
         uses: actions/upload-artifact@v4
         with:
-          name: postman-report
-          path: newman
+          name: postman-report  # Nombre del artefacto que aparecerá para descargar
+          path: newman          # Carpeta que contiene el reporte HTML
