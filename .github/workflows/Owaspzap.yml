@@ -1,35 +1,49 @@
-name: Run OWASP ZAP Scan
+name: Run OWASP ZAP Scan  # Escaneo de seguridad con ZAP
 
 on:
   push:
     branches:
-      - main
+      - main  # Ejecuta al hacer push a main
+
   schedule:
-    - cron: '0 13 * * *'  # Ejecuta todos los días a la 1 PM UTC (8 AM en Colombia)
-  workflow_dispatch:  # Permite ejecutar el workflow manualmente desde GitHub Actions
+    - cron: '0 13 * * *'  # Ejecuta diario a las 13:00 UTC
+
+  workflow_dispatch:  # Permite ejecución manual
 
 jobs:
   zap-scan:
-    runs-on: ubuntu-latest
+
+    runs-on: ubuntu-latest  # Runner Linux de GitHub
 
     steps:
+
+      # Descarga el repositorio al runner
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install Docker
-        uses: docker/setup-buildx-action@v2
+      # Habilita soporte para ejecutar contenedores Docker
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v3
 
+      # Ejecuta un escaneo rápido de la API con ZAP
       - name: Run OWASP ZAP Scan
         run: |
-          docker run --rm --memory=8gb -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly \
-          zap-full-scan.py -I -j -m 10 -T 60 \
+          docker run --rm \
+          -v $(pwd):/zap/wrk/:rw \
+          -t ictu/zap2docker-weekly \
+          zap-api-scan.py \
           -t https://petstore.swagger.io/v2/pet/findByStatus?status=available \
-          -r zap_report.html
-        env:
-          ZAP_API_KEY: ${{ secrets.ZAP_API_KEY }}  # Si es necesario usar una clave API
+          -f openapi \           # Tipo de API (OpenAPI / Swagger)
+          -r zap_report.html \   # Reporte HTML generado
+          -T 30                  # Tiempo máximo del escaneo
 
-      - name: Upload report
+      # Muestra los archivos generados
+      - name: Listar archivos generados
+        run: ls -R
+
+      # Guarda el reporte como artefacto descargable
+      - name: Subir reporte
         uses: actions/upload-artifact@v4
         with:
-          name: zap-report
-          path: zap_report.html
+          name: zap-security-report  # Nombre del artefacto
+          path: zap_report.html      # Archivo del reporte
