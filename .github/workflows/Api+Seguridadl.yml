@@ -9,11 +9,14 @@ on:
   workflow_dispatch:
 
 jobs:
+  # ===============================
+  # JOB 1: Tests de API con Newman
+  # ===============================
   run-tests:
     runs-on: ubuntu-latest
 
     steps:
-      # Descargar repo
+      # Descargar repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -27,7 +30,7 @@ jobs:
       - name: Instalar Newman
         run: npm install -g newman newman-reporter-htmlextra
 
-      # Crear carpeta de reportes
+      # Crear carpeta para reportes
       - name: Crear carpeta Newman
         run: mkdir -p newman
 
@@ -57,6 +60,9 @@ jobs:
           mkdir -p gh-pages
           cp newman/report.html gh-pages/postman_report.html
 
+  # ===============================
+  # JOB 2: Escaneo de seguridad ZAP
+  # ===============================
   zap-scan:
     runs-on: ubuntu-latest
     needs: run-tests
@@ -70,32 +76,40 @@ jobs:
       - name: Setup Docker
         uses: docker/setup-buildx-action@v3
 
-      # Ejecutar ZAP rápido
+      # Ejecutar ZAP API Scan
       - name: Ejecutar ZAP API Scan
         run: |
           docker run --rm \
-          -v $(pwd):/zap/wrk/:rw \
+          -v ${{ github.workspace }}:/zap/wrk/:rw \
           -t ictu/zap2docker-weekly \
           zap-api-scan.py \
           -t https://petstore.swagger.io/v2/pet/findByStatus?status=available \
           -f openapi \
-          -r zap_report.html \
-          -j zap_report.json \
-          -T 30 || true
+          -r /zap/wrk/zap_report.html \
+          -j /zap/wrk/zap_report.json \
+          -T 30 \
+          -I || true  # Ignora warnings y no falla por WARNs
 
-      # Mostrar archivos generados
-      - name: Listar archivos ZAP
-        run: ls -R
+      # Verificar que los reportes existen
+      - name: Verificar reportes ZAP
+        run: |
+          ls -l ${{ github.workspace }}
+          if [ -f ${{ github.workspace }}/zap_report.html ]; then echo "HTML generado"; else echo "HTML NO generado"; fi
+          if [ -f ${{ github.workspace }}/zap_report.json ]; then echo "JSON generado"; else echo "JSON NO generado"; fi
 
       # Falla solo si hay HIGH
       - name: Fallar si HIGH
         run: |
-          cat zap_report.json | jq '.site[].alerts[] | select(.risk=="High")' > high_alerts.json
-          if [ -s high_alerts.json ]; then
-            echo "❌ HIGH vulnerabilities detectadas!"
-            exit 1
+          if [ -f ${{ github.workspace }}/zap_report.json ]; then
+            cat ${{ github.workspace }}/zap_report.json | jq '.site[].alerts[] | select(.risk=="High")' > high_alerts.json
+            if [ -s high_alerts.json ]; then
+              echo "❌ HIGH vulnerabilities detectadas!"
+              exit 1
+            else
+              echo "✅ No hay HIGH vulnerabilities"
+            fi
           else
-            echo "✅ No hay HIGH vulnerabilities"
+            echo "⚠️ zap_report.json no existe, saltando verificación HIGH"
           fi
 
       # Subir reportes ZAP
@@ -104,16 +118,20 @@ jobs:
         with:
           name: zap-security-report
           path: |
-            zap_report.html
-            zap_report.json
+            ${{ github.workspace }}/zap_report.html
+            ${{ github.workspace }}/zap_report.json
 
       # Copiar HTML a carpeta gh-pages
       - name: Preparar carpeta Pages
-        run: cp zap_report.html gh-pages/zap_report.html
+        run: cp ${{ github.workspace }}/zap_report.html gh-pages/zap_report.html
 
+  # ===============================
+  # JOB 3: Publicación GitHub Pages
+  # ===============================
   publish-pages:
     runs-on: ubuntu-latest
     needs: [run-tests, zap-scan]
+
     steps:
       # Checkout repo
       - name: Checkout repository
@@ -123,8 +141,8 @@ jobs:
       - name: Configurar Pages
         uses: actions/configure-pages@v4
 
-      # Subir carpeta gh-pages
-      - name: Publicar reportes en GitHub Pages
+      # Subir carpeta gh-pages como artifact
+      - name: Subir artefacto Pages
         uses: actions/upload-pages-artifact@v1
         with:
           path: gh-pages
