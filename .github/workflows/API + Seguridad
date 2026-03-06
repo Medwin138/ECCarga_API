@@ -1,0 +1,134 @@
+name: CI Pipeline – API + Seguridad + Reports Web
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Descargar repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Instalar Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # Instalar Newman y reporter HTML
+      - name: Instalar Newman
+        run: npm install -g newman newman-reporter-htmlextra
+
+      # Crear carpeta de reportes
+      - name: Crear carpeta Newman
+        run: mkdir -p newman
+
+      # Ejecutar colección Postman
+      - name: Ejecutar colección Postman
+        run: |
+          newman run newman/EC-Carga.postman_collection.json \
+            -e newman/Prueba.postman_environment.json \
+            -d newman/DataPruebaDog.csv \
+            -r cli,htmlextra \
+            --reporter-htmlextra-export newman/report.html || true
+
+      # Mostrar archivos generados
+      - name: Listar archivos Newman
+        run: ls -R newman
+
+      # Subir reporte Newman
+      - name: Subir reporte Newman
+        uses: actions/upload-artifact@v4
+        with:
+          name: postman-report
+          path: newman
+
+      # Preparar carpeta para publicar en Pages
+      - name: Preparar carpeta Pages
+        run: |
+          mkdir -p gh-pages
+          cp newman/report.html gh-pages/postman_report.html
+
+  zap-scan:
+    runs-on: ubuntu-latest
+    needs: run-tests
+
+    steps:
+      # Descargar repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Configurar Docker
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v3
+
+      # Ejecutar ZAP rápido
+      - name: Ejecutar ZAP API Scan
+        run: |
+          docker run --rm \
+          -v $(pwd):/zap/wrk/:rw \
+          -t ictu/zap2docker-weekly \
+          zap-api-scan.py \
+          -t https://petstore.swagger.io/v2/pet/findByStatus?status=available \
+          -f openapi \
+          -r zap_report.html \
+          -j zap_report.json \
+          -T 30 || true
+
+      # Mostrar archivos generados
+      - name: Listar archivos ZAP
+        run: ls -R
+
+      # Falla solo si hay HIGH
+      - name: Fallar si HIGH
+        run: |
+          cat zap_report.json | jq '.site[].alerts[] | select(.risk=="High")' > high_alerts.json
+          if [ -s high_alerts.json ]; then
+            echo "❌ HIGH vulnerabilities detectadas!"
+            exit 1
+          else
+            echo "✅ No hay HIGH vulnerabilities"
+          fi
+
+      # Subir reportes ZAP
+      - name: Subir reporte ZAP
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-security-report
+          path: |
+            zap_report.html
+            zap_report.json
+
+      # Copiar HTML a carpeta gh-pages
+      - name: Preparar carpeta Pages
+        run: cp zap_report.html gh-pages/zap_report.html
+
+  publish-pages:
+    runs-on: ubuntu-latest
+    needs: [run-tests, zap-scan]
+    steps:
+      # Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Configurar Pages
+      - name: Configurar Pages
+        uses: actions/configure-pages@v4
+
+      # Subir carpeta gh-pages
+      - name: Publicar reportes en GitHub Pages
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: gh-pages
+
+      # Desplegar Pages
+      - name: Desplegar Pages
+        uses: actions/deploy-pages@v1
