@@ -5,19 +5,19 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 13 * * *'
-  workflow_dispatch:
+    - cron: '0 13 * * *'  # Escaneo diario 13:00 UTC
+  workflow_dispatch:  # Permite ejecución manual
 
 jobs:
   run-tests:
     runs-on: ubuntu-latest
 
     steps:
-      # Descargar repo
+      # Descargar repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Instalar Node.js
+      # Configurar Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -27,7 +27,7 @@ jobs:
       - name: Instalar Newman
         run: npm install -g newman newman-reporter-htmlextra
 
-      # Crear carpeta de reportes
+      # Crear carpeta para reportes
       - name: Crear carpeta Newman
         run: mkdir -p newman
 
@@ -40,18 +40,18 @@ jobs:
             -r cli,htmlextra \
             --reporter-htmlextra-export newman/report.html || true
 
-      # Mostrar archivos generados
-      - name: Listar archivos Newman
-        run: ls -R newman
+      # Verificar reportes
+      - name: Verificar reportes Newman
+        run: ls -l newman
 
-      # Subir reporte Newman
+      # Subir reporte Newman como artefacto
       - name: Subir reporte Newman
         uses: actions/upload-artifact@v4
         with:
           name: postman-report
           path: newman
 
-      # Preparar carpeta para publicar en Pages
+      # Preparar carpeta para GitHub Pages
       - name: Preparar carpeta Pages
         run: |
           mkdir -p gh-pages
@@ -74,23 +74,27 @@ jobs:
       - name: Ejecutar ZAP API Scan
         run: |
           docker run --rm \
-          -v $(pwd):/zap/wrk/:rw \
+          -v ${{ github.workspace }}:/zap/wrk/:rw \
           -t ictu/zap2docker-weekly \
           zap-api-scan.py \
           -t https://petstore.swagger.io/v2/pet/findByStatus?status=available \
           -f openapi \
-          -r zap_report.html \
-          -j zap_report.json \
-          -T 30 || true
+          -r /zap/wrk/zap_report.html \
+          -j /zap/wrk/zap_report.json \
+          -T 30 \
+          -I || true
 
-      # Mostrar archivos generados
-      - name: Listar archivos ZAP
-        run: ls -R
+      # Verificar que los reportes existen
+      - name: Verificar reportes ZAP
+        run: |
+          ls -l ${{ github.workspace }}
+          if [ -f ${{ github.workspace }}/zap_report.html ]; then echo "HTML generado"; else echo "HTML NO generado"; fi
+          if [ -f ${{ github.workspace }}/zap_report.json ]; then echo "JSON generado"; else echo "JSON NO generado"; fi
 
       # Falla solo si hay HIGH
       - name: Fallar si HIGH
         run: |
-          cat zap_report.json | jq '.site[].alerts[] | select(.risk=="High")' > high_alerts.json
+          cat ${{ github.workspace }}/zap_report.json | jq '.site[].alerts[] | select(.risk=="High")' > high_alerts.json
           if [ -s high_alerts.json ]; then
             echo "❌ HIGH vulnerabilities detectadas!"
             exit 1
@@ -98,37 +102,39 @@ jobs:
             echo "✅ No hay HIGH vulnerabilities"
           fi
 
-      # Subir reportes ZAP
+      # Subir reportes ZAP como artefactos
       - name: Subir reporte ZAP
         uses: actions/upload-artifact@v4
         with:
           name: zap-security-report
           path: |
-            zap_report.html
-            zap_report.json
+            ${{ github.workspace }}/zap_report.html
+            ${{ github.workspace }}/zap_report.json
 
-      # Copiar HTML a carpeta gh-pages
+      # Copiar reportes HTML a carpeta gh-pages
       - name: Preparar carpeta Pages
-        run: cp zap_report.html gh-pages/zap_report.html
+        run: |
+          cp ${{ github.workspace }}/zap_report.html gh-pages/zap_report.html
 
   publish-pages:
     runs-on: ubuntu-latest
     needs: [run-tests, zap-scan]
+
     steps:
-      # Checkout repo
+      # Descargar repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Configurar Pages
+      # Configurar GitHub Pages
       - name: Configurar Pages
         uses: actions/configure-pages@v4
 
-      # Subir carpeta gh-pages
-      - name: Publicar reportes en GitHub Pages
+      # Subir carpeta gh-pages como artifact
+      - name: Subir artefacto Pages
         uses: actions/upload-pages-artifact@v1
         with:
           path: gh-pages
 
-      # Desplegar Pages
+      # Desplegar GitHub Pages
       - name: Desplegar Pages
         uses: actions/deploy-pages@v1
