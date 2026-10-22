@@ -1,66 +1,54 @@
-# 🐶 EC-Carga API <sub>· pruebas de API sin drama</sub>
+# EC-Carga API
 
-[![CI · Postman Tests](https://github.com/Medwin138/ECCarga_API/actions/workflows/ci.yml/badge.svg)](https://github.com/Medwin138/ECCarga_API/actions/workflows/ci.yml)
-[![CI · API + Seguridad](https://github.com/Medwin138/ECCarga_API/actions/workflows/Api%2BSeguridadl.yml/badge.svg)](https://github.com/Medwin138/ECCarga_API/actions/workflows/Api%2BSeguridadl.yml)
-![License](https://img.shields.io/badge/license-MIT-3DA639?style=flat-square)
-![Node](https://img.shields.io/badge/node-18.x-339933?style=flat-square&logo=node.js&logoColor=white)
-![Postman](https://img.shields.io/badge/postman-ready-FF6C37?style=flat-square&logo=postman&logoColor=white)
-![OWASP ZAP](https://img.shields.io/badge/OWASP-ZAP-00549E?style=flat-square&logo=owasp&logoColor=white)
+[![CI](https://github.com/Medwin138/ECCarga_API/actions/workflows/ci.yml/badge.svg)](https://github.com/Medwin138/ECCarga_API/actions/workflows/ci.yml)
+[![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE)
 
-> 🧪 Suite de pruebas de API con **Postman + Newman**, reportes HTML bonitos y seguridad con **OWASP ZAP**,
-> todo corriendo solito en **GitHub Actions**. Sin servidores, sin credenciales, sin excusas. 🚀
+Suite de pruebas automatizadas de API construida con Postman y ejecutada con Newman. Incluye reportes HTML e integración continua en GitHub Actions con pruebas funcionales y análisis de seguridad mediante OWASP ZAP.
 
-Se ejecuta contra la API pública de ejemplo [Swagger Petstore](https://petstore.swagger.io) 🐕, así que puedes
-clonar el repo y verlo funcionar en menos de un minuto. Sí, en serio. ⏱️
+Las pruebas se ejecutan contra la API pública de ejemplo [Swagger Petstore](https://petstore.swagger.io), por lo que no requieren credenciales ni infraestructura propia.
 
----
+## Estructura del repositorio
 
-## 📦 ¿Qué hay adentro?
-
-| Archivo | ¿Qué es? |
+| Ruta | Descripción |
 | --- | --- |
-| 🧾 `newman/EC-Carga.postman_collection.json` | La colección Postman con **4 peticiones** y sus aserciones |
-| 🌱 `newman/Prueba.postman_environment.json` | Environment `Prueba` con las variables `Nombre`, `id` y `randomDogName` |
-| 🎲 `newman/DataPruebaDog.csv` | Datos para pruebas data-driven: **30 perritos** (nombre + id) |
-| 📊 `newman/EC-Carga-*.html` | Reporte HTML de ejemplo generado por `newman-reporter-htmlextra` |
-| ⌨️ `Comandos.txt` | Los comandos de siempre, por si no quieres pensarlos |
-| 🤖 `.github/workflows/ci.yml` | Pipeline de pruebas con Newman |
-| 🛡️ `.github/workflows/Api+Seguridadl.yml` | Pruebas + escaneo ZAP + publicación en GitHub Pages |
+| `newman/EC-Carga.postman_collection.json` | Colección Postman con cuatro peticiones y sus aserciones |
+| `newman/Prueba.postman_environment.json` | Environment `Prueba` con las variables `Nombre`, `id` y `randomDogName` |
+| `newman/DataPruebaDog.csv` | Conjunto de datos para pruebas data-driven (30 registros `id,Nombre`) |
+| `newman/EC-Carga-*.html` | Reporte HTML de ejemplo generado por `newman-reporter-htmlextra` |
+| `Comandos.txt` | Comandos de ejecución local |
+| `.github/workflows/ci.yml` | Pipeline de pruebas con Newman |
+| `.github/workflows/Api+Seguridadl.yml` | Pipeline de pruebas, escaneo ZAP y publicación en GitHub Pages |
 
----
+## Alcance de las pruebas
 
-## 🎯 Las peticiones (y qué validan)
+| Petición | Método | Endpoint | Aserciones |
+| --- | :---: | --- | :---: |
+| `Crear` | `POST` | `/v2/pet` | 6 |
+| `Consulta Por ID` | `GET` | `/v2/pet/{{id}}` | 7 |
+| `Actualizar` | `PUT` | `/v2/pet` | 7 |
+| `Consulta Por ID Copy` | `GET` | `/v2/pet/{{id}}` | 8 |
 
-| Petición | Método | Endpoint | Checks |
-| :--- | :---: | :--- | :---: |
-| ➕ `Crear` | `POST` | `/v2/pet` | **6** |
-| 🔍 `Consulta Por ID` | `GET` | `/v2/pet/{{id}}` | **7** |
-| ✏️ `Actualizar` | `PUT` | `/v2/pet` | **7** |
-| 🔁 `Consulta Por ID Copy` | `GET` | `/v2/pet/{{id}}` | **8** |
+Las aserciones verifican el código de estado HTTP, la presencia y no nulidad de `id`, el contenido de `category.name`, el valor `status`, la longitud del nombre y la estructura general del JSON devuelto.
 
-Cada request valida:
+La petición `Crear` incluye un script de pre-request que selecciona un nombre de perro aleatorio y lo almacena en la variable de entorno `randomDogName`, de modo que cada ejecución envía datos distintos.
 
-- ✅ Código de estado HTTP correcto
-- 🆔 `id` presente y no nulo
-- 🏷️ `category.name` con contenido
-- 🟢 `status` igual a `available`
-- 🔤 Nombre con más de 2 caracteres
-- 🧱 Estructura del JSON devuelto
+## Requisitos
 
-Y el request `Crear` tiene un *pre-request script* que sortea un nombre de perro 🎲 y lo guarda en
-`randomDogName`. Nunca dos corridas iguales. Bueno, casi nunca. 😄
+- Node.js 18 o superior
+- npm
+- Opcional: Postman para editar la colección y Docker para ejecutar ZAP en local
 
----
+## Ejecución local
 
-## ⚡ Cómo correrlo en tu máquina
-
-**Requisito único:** [Node.js](https://nodejs.org) 18+ 🟩
+Instalación de Newman y del reporter HTML:
 
 ```bash
-# 1️⃣ Instala Newman y el reporter HTML
 npm install -g newman newman-reporter-htmlextra
+```
 
-# 2️⃣ Lanza la suite con environment y datos
+Ejecución de la suite con el environment y los datos de prueba:
+
+```bash
 newman run newman/EC-Carga.postman_collection.json \
   -e newman/Prueba.postman_environment.json \
   -d newman/DataPruebaDog.csv \
@@ -68,71 +56,68 @@ newman run newman/EC-Carga.postman_collection.json \
   --reporter-htmlextra-export newman/report.html
 ```
 
-📂 Al terminar, abre `newman/report.html` y presume tu reporte. 🕶️
+El reporte se genera en `newman/report.html`. Los mismos comandos están disponibles en `Comandos.txt`.
 
-> 💡 También puedes importar la colección en Postman y darle *Run* como todo el mundo.
+## Integración continua
 
----
+### `ci.yml` — Run Postman Tests
 
-## 🤖 Integración continua (la parte mágica)
+Se ejecuta en cada push a `main`, de forma programada (todos los días a las 13:00 UTC) y mediante ejecución manual.
 
-### 1️⃣ `ci.yml` — *"Run Postman Tests"*
+1. Instala Node.js 18, Newman y `newman-reporter-htmlextra`.
+2. Ejecuta la colección con el environment y el archivo CSV.
+3. Publica la carpeta `newman` como artefacto `postman-report`.
 
-Se dispara con cada **push a `main`**, **cada día a las 13:00 UTC** ⏰ o **a mano** desde la pestaña Actions.
+### `Api+Seguridadl.yml` — CI Pipeline
 
-1. Instala Node 18 + Newman + reporter
-2. Corre la colección con environment y CSV
-3. Sube la carpeta `newman` como artefacto `postman-report` 📤
+Se compone de tres jobs:
 
-### 2️⃣ `Api+Seguridadl.yml` — *"CI Pipeline · API + Seguridad + Reports Web"*
-
-Tres jobs en cadena:
-
-| Job | Qué hace |
+| Job | Función |
 | --- | --- |
-| 🧪 `run-tests` | Pruebas de API y preparación de `gh-pages` |
-| 🛡️ `zap-scan` | OWASP ZAP full scan contra `petstore.swagger.io/v2/pet/findByStatus?status=available`; falla solo con alertas **High** 🔴 |
-| 🌐 `publish-pages` | Publica los reportes en GitHub Pages |
+| `run-tests` | Ejecuta las pruebas de API y prepara la carpeta `gh-pages` |
+| `zap-scan` | Ejecuta un full scan de OWASP ZAP contra `petstore.swagger.io/v2/pet/findByStatus?status=available` y falla solo si detecta alertas de riesgo alto |
+| `publish-pages` | Publica los reportes en GitHub Pages |
 
-> ⚠️ **Ojo:** el paso de Newman usa `|| true`, así que un check en rojo **no** tumba el pipeline.
-> ¿Quieres que las pruebas bloqueen el merge? Borra ese `|| true`. Así de fácil. ✂️
+> **Nota sobre fallos:** el paso de Newman finaliza con `|| true`, por lo que una aserción fallida no detiene el pipeline. El estado de las pruebas debe revisarse en el log o en el reporte HTML del artefacto. Para que un fallo bloquee la ejecución, elimine `|| true` del paso correspondiente.
 
----
+## Notificaciones por correo
 
-## 🛡️ Seguridad sin sustos
+El repositorio no configura un servidor SMTP propio. Las notificaciones las envía GitHub a la dirección de correo asociada a la cuenta, siempre que las notificaciones por correo estén habilitadas.
 
-- 🔍 Escaneo ZAP automático en cada corrida del pipeline
-- 📄 Reportes HTML + JSON como artefactos descargables
-- 🚨 El job falla únicamente con vulnerabilidades de riesgo **High**
+GitHub notifica las ejecuciones de dos formas:
 
----
+- **Ejecuciones que usted inicia:** recibe un correo con el estado final (`success`, `failed`, `neutral` o `cancelled`). Es posible configurar que solo se notifiquen los fallos.
+- **Ejecuciones programadas:** el aviso se envía al usuario que creó el workflow. Si otro usuario modifica el `cron`, las notificaciones pasan a ese usuario.
 
-## 🎯 ¿Y si quiero probar MI API?
+Para habilitarlas:
 
-La URL está fija en cada request. Para apuntar a la tuya:
+1. Abra **Settings → Notifications** en su cuenta de GitHub.
+2. En la sección **Actions**, active las notificaciones por correo y, si lo desea, limite el envío a ejecuciones fallidas.
+3. Verifique que la dirección de correo esté confirmada en **Settings → Emails**.
+4. Opcionalmente, para recibir también la actividad de CI del repositorio, use **Watch → Custom** y marque **Actions**.
 
-1. 🔗 Cambia `https://petstore.swagger.io/v2/pet` por tu endpoint
-2. 🧩 Ajusta el body y las aserciones al contrato real
-3. 🛡️ Actualiza la URL del paso de ZAP en `Api+Seguridadl.yml`
+> **Limitación:** debido al uso de `|| true`, un fallo en las aserciones de Newman no marca el workflow como fallido y, por tanto, no genera notificación de error. Para que el correo refleje el resultado real de las pruebas, elimine `|| true` del paso `Run Postman Collection` en `ci.yml` y del paso equivalente en `Api+Seguridadl.yml`.
 
----
+## Seguridad
 
-## 🔒 Privacidad
+- Escaneo automatizado con OWASP ZAP en cada ejecución del pipeline de seguridad.
+- Reportes HTML y JSON publicados como artefactos descargables.
+- El job de ZAP falla únicamente ante vulnerabilidades de riesgo alto.
 
-Todo es dato ficticio de una API de ejemplo. **Cero credenciales, cero datos reales, cero problemas.** 🙈
+## Uso con otra API
 
----
+Las URL están definidas en cada petición de la colección. Para apuntar a otra API:
 
-## 📄 Licencia
+1. Reemplace `https://petstore.swagger.io/v2/pet` por el endpoint correspondiente en la colección.
+2. Ajuste el cuerpo de las peticiones y las aserciones al contrato real de la API.
+3. Actualice la URL del paso de ZAP en `.github/workflows/Api+Seguridadl.yml`.
 
-![MIT](https://img.shields.io/badge/license-MIT-3DA639?style=for-the-badge)
+## Privacidad
 
-Distribuido bajo **MIT** — usa, copia, modifica y comparte. Solo conserva el aviso de copyright. 🤝
-Ver [LICENSE](LICENSE).
+Los endpoints, nombres y respuestas utilizados corresponden a datos ficticios de la API de ejemplo. El repositorio no contiene credenciales ni información de usuarios reales.
 
----
+## Licencia
 
-<p align="center">
-  <b>Hecho con ☕ + 🐾 por <a href="https://github.com/Medwin138">Medwin138</a></b><br/>
-  <i>Si te sirvió, déjale una ⭐ — alimenta al perrito.</i> 🐕‍🦺
-</p>
+Este proyecto se distribuye bajo la licencia MIT. Consulte [LICENSE](LICENSE).
+
+Copyright (c) 2026 Medwin138
