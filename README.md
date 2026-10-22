@@ -1,49 +1,66 @@
-# EC-Carga API
+# 🐶 EC-Carga API <sub>· pruebas de API sin drama</sub>
 
-Suite de pruebas automatizadas de API construida con **Postman** y ejecutada con **Newman**, con reportes HTML y un pipeline de integración continua en **GitHub Actions** que además ejecuta un escaneo de seguridad con **OWASP ZAP**.
+[![CI · Postman Tests](https://github.com/Medwin138/ECCarga_API/actions/workflows/ci.yml/badge.svg)](https://github.com/Medwin138/ECCarga_API/actions/workflows/ci.yml)
+[![CI · API + Seguridad](https://github.com/Medwin138/ECCarga_API/actions/workflows/Api%2BSeguridadl.yml/badge.svg)](https://github.com/Medwin138/ECCarga_API/actions/workflows/Api%2BSeguridadl.yml)
+![License](https://img.shields.io/badge/license-MIT-3DA639?style=flat-square)
+![Node](https://img.shields.io/badge/node-18.x-339933?style=flat-square&logo=node.js&logoColor=white)
+![Postman](https://img.shields.io/badge/postman-ready-FF6C37?style=flat-square&logo=postman&logoColor=white)
+![OWASP ZAP](https://img.shields.io/badge/OWASP-ZAP-00549E?style=flat-square&logo=owasp&logoColor=white)
 
-Las pruebas se ejecutan contra la API pública de ejemplo [Swagger Petstore](https://petstore.swagger.io), por lo que no requieren credenciales ni infraestructura propia.
+> 🧪 Suite de pruebas de API con **Postman + Newman**, reportes HTML bonitos y seguridad con **OWASP ZAP**,
+> todo corriendo solito en **GitHub Actions**. Sin servidores, sin credenciales, sin excusas. 🚀
 
-## Contenido
+Se ejecuta contra la API pública de ejemplo [Swagger Petstore](https://petstore.swagger.io) 🐕, así que puedes
+clonar el repo y verlo funcionar en menos de un minuto. Sí, en serio. ⏱️
 
-| Elemento | Descripción |
+---
+
+## 📦 ¿Qué hay adentro?
+
+| Archivo | ¿Qué es? |
 | --- | --- |
-| `newman/EC-Carga.postman_collection.json` | Colección Postman con 4 peticiones y sus aserciones |
-| `newman/Prueba.postman_environment.json` | Environment `Prueba` (variables `Nombre`, `id`, `randomDogName`) |
-| `newman/DataPruebaDog.csv` | Datos para pruebas data-driven: 30 registros `id,Nombre` |
-| `newman/EC-Carga-*.html` | Reporte HTML de ejemplo generado por `newman-reporter-htmlextra` |
-| `Comandos.txt` | Comandos de ejecución local |
-| `.github/workflows/ci.yml` | Pipeline de pruebas con Newman |
-| `.github/workflows/Api+Seguridadl.yml` | Pipeline de pruebas + escaneo ZAP + publicación en GitHub Pages |
+| 🧾 `newman/EC-Carga.postman_collection.json` | La colección Postman con **4 peticiones** y sus aserciones |
+| 🌱 `newman/Prueba.postman_environment.json` | Environment `Prueba` con las variables `Nombre`, `id` y `randomDogName` |
+| 🎲 `newman/DataPruebaDog.csv` | Datos para pruebas data-driven: **30 perritos** (nombre + id) |
+| 📊 `newman/EC-Carga-*.html` | Reporte HTML de ejemplo generado por `newman-reporter-htmlextra` |
+| ⌨️ `Comandos.txt` | Los comandos de siempre, por si no quieres pensarlos |
+| 🤖 `.github/workflows/ci.yml` | Pipeline de pruebas con Newman |
+| 🛡️ `.github/workflows/Api+Seguridadl.yml` | Pruebas + escaneo ZAP + publicación en GitHub Pages |
 
-## Peticiones y validaciones
+---
+
+## 🎯 Las peticiones (y qué validan)
 
 | Petición | Método | Endpoint | Checks |
-| --- | --- | --- | --- |
-| `Crear` | `POST` | `/v2/pet` | 6 |
-| `Consulta Por ID` | `GET` | `/v2/pet/{{id}}` | 7 |
-| `Actualizar` | `PUT` | `/v2/pet` | 7 |
-| `Consulta Por ID Copy` | `GET` | `/v2/pet/{{id}}` | 8 |
+| :--- | :---: | :--- | :---: |
+| ➕ `Crear` | `POST` | `/v2/pet` | **6** |
+| 🔍 `Consulta Por ID` | `GET` | `/v2/pet/{{id}}` | **7** |
+| ✏️ `Actualizar` | `PUT` | `/v2/pet` | **7** |
+| 🔁 `Consulta Por ID Copy` | `GET` | `/v2/pet/{{id}}` | **8** |
 
-Cada petición valida código de estado, presencia y no nulidad de `id`, contenido de `category.name`, `status`, longitud del nombre y estructura del JSON devuelto. La petición `Crear` incluye un script de pre-request que elige un nombre de perro aleatorio y lo guarda en la variable de entorno `randomDogName`.
+Cada request valida:
 
-## Requisitos
+- ✅ Código de estado HTTP correcto
+- 🆔 `id` presente y no nulo
+- 🏷️ `category.name` con contenido
+- 🟢 `status` igual a `available`
+- 🔤 Nombre con más de 2 caracteres
+- 🧱 Estructura del JSON devuelto
 
-- [Node.js](https://nodejs.org) 18 o superior
-- npm
-- Opcional: Postman para editar la colección, Docker para ejecutar ZAP en local
+Y el request `Crear` tiene un *pre-request script* que sortea un nombre de perro 🎲 y lo guarda en
+`randomDogName`. Nunca dos corridas iguales. Bueno, casi nunca. 😄
 
-## Ejecución local
+---
 
-Instala Newman y el reporter HTML:
+## ⚡ Cómo correrlo en tu máquina
+
+**Requisito único:** [Node.js](https://nodejs.org) 18+ 🟩
 
 ```bash
+# 1️⃣ Instala Newman y el reporter HTML
 npm install -g newman newman-reporter-htmlextra
-```
 
-Ejecuta la colección con el environment y los datos de prueba:
-
-```bash
+# 2️⃣ Lanza la suite con environment y datos
 newman run newman/EC-Carga.postman_collection.json \
   -e newman/Prueba.postman_environment.json \
   -d newman/DataPruebaDog.csv \
@@ -51,38 +68,71 @@ newman run newman/EC-Carga.postman_collection.json \
   --reporter-htmlextra-export newman/report.html
 ```
 
-El reporte queda en `newman/report.html`. Los mismos comandos están en `Comandos.txt`.
+📂 Al terminar, abre `newman/report.html` y presume tu reporte. 🕶️
 
-## Integración continua
+> 💡 También puedes importar la colección en Postman y darle *Run* como todo el mundo.
 
-**`ci.yml`** se ejecuta en cada push a `main`, de forma programada (diariamente a las 13:00 UTC) o manualmente:
+---
 
-1. Instala Node.js 18, Newman y `newman-reporter-htmlextra`.
-2. Ejecuta la colección con el environment y el CSV.
-3. Publica la carpeta `newman` como artefacto `postman-report`.
+## 🤖 Integración continua (la parte mágica)
 
-**`Api+Seguridadl.yml`** añade dos jobs sobre el anterior:
+### 1️⃣ `ci.yml` — *"Run Postman Tests"*
 
-1. `run-tests`: mismas pruebas de API y preparación de la carpeta `gh-pages`.
-2. `zap-scan`: OWASP ZAP full scan contra `https://petstore.swagger.io/v2/pet/findByStatus?status=available`, con reportes HTML y JSON como artefactos; el job falla solo si ZAP reporta alertas de riesgo **High**.
-3. `publish-pages`: publica los reportes en GitHub Pages.
+Se dispara con cada **push a `main`**, **cada día a las 13:00 UTC** ⏰ o **a mano** desde la pestaña Actions.
 
-> Nota: el paso de Newman usa `|| true`, de modo que un fallo en las aserciones no detiene el pipeline. Si quieres que las pruebas bloqueen el merge, elimina ese `|| true` del workflow.
+1. Instala Node 18 + Newman + reporter
+2. Corre la colección con environment y CSV
+3. Sube la carpeta `newman` como artefacto `postman-report` 📤
 
-## Ejecutar contra otra API
+### 2️⃣ `Api+Seguridadl.yml` — *"CI Pipeline · API + Seguridad + Reports Web"*
 
-La URL está fijada en cada petición de la colección. Para apuntar a otra API:
+Tres jobs en cadena:
 
-1. Sustituye `https://petstore.swagger.io/v2/pet` por tu endpoint en Postman o en el JSON de la colección.
-2. Ajusta el body y las aserciones al contrato real de tu API.
-3. Actualiza la URL del paso de ZAP en `.github/workflows/Api+Seguridadl.yml`.
+| Job | Qué hace |
+| --- | --- |
+| 🧪 `run-tests` | Pruebas de API y preparación de `gh-pages` |
+| 🛡️ `zap-scan` | OWASP ZAP full scan contra `petstore.swagger.io/v2/pet/findByStatus?status=available`; falla solo con alertas **High** 🔴 |
+| 🌐 `publish-pages` | Publica los reportes en GitHub Pages |
 
-## Datos y privacidad
+> ⚠️ **Ojo:** el paso de Newman usa `|| true`, así que un check en rojo **no** tumba el pipeline.
+> ¿Quieres que las pruebas bloqueen el merge? Borra ese `|| true`. Así de fácil. ✂️
 
-Los endpoints, nombres y respuestas son datos ficticios de la API pública de ejemplo. El repositorio no contiene credenciales ni información real de usuarios.
+---
 
-## Licencia
+## 🛡️ Seguridad sin sustos
 
-Distribuido bajo licencia **MIT**. Consulta [LICENSE](LICENSE).
+- 🔍 Escaneo ZAP automático en cada corrida del pipeline
+- 📄 Reportes HTML + JSON como artefactos descargables
+- 🚨 El job falla únicamente con vulnerabilidades de riesgo **High**
 
-Copyright (c) 2026 Medwin138
+---
+
+## 🎯 ¿Y si quiero probar MI API?
+
+La URL está fija en cada request. Para apuntar a la tuya:
+
+1. 🔗 Cambia `https://petstore.swagger.io/v2/pet` por tu endpoint
+2. 🧩 Ajusta el body y las aserciones al contrato real
+3. 🛡️ Actualiza la URL del paso de ZAP en `Api+Seguridadl.yml`
+
+---
+
+## 🔒 Privacidad
+
+Todo es dato ficticio de una API de ejemplo. **Cero credenciales, cero datos reales, cero problemas.** 🙈
+
+---
+
+## 📄 Licencia
+
+![MIT](https://img.shields.io/badge/license-MIT-3DA639?style=for-the-badge)
+
+Distribuido bajo **MIT** — usa, copia, modifica y comparte. Solo conserva el aviso de copyright. 🤝
+Ver [LICENSE](LICENSE).
+
+---
+
+<p align="center">
+  <b>Hecho con ☕ + 🐾 por <a href="https://github.com/Medwin138">Medwin138</a></b><br/>
+  <i>Si te sirvió, déjale una ⭐ — alimenta al perrito.</i> 🐕‍🦺
+</p>
